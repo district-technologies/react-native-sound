@@ -76,6 +76,9 @@
         if (key == nil)
             return;
 
+        AVAudioSession *session = [AVAudioSession sharedInstance];
+        [session setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+        
         [self setOnPlay:NO forPlayerKey:key];
         RCTResponseSenderBlock callback = [self callbackForKey:key];
         if (callback) {
@@ -172,7 +175,7 @@ RCT_EXPORT_METHOD(setCategory
     if (category) {
         if (mixWithOthers) {
             [session setCategory:category
-                     withOptions:AVAudioSessionCategoryOptionMixWithOthers
+                     withOptions:AVAudioSessionCategoryOptionDuckOthers
                            error:nil];
         } else {
             [session setCategory:category error:nil];
@@ -273,6 +276,8 @@ RCT_EXPORT_METHOD(stop
 }
 
 RCT_EXPORT_METHOD(release : (nonnull NSNumber *)key) {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    
     @synchronized(self) {
         AVAudioPlayer *player = [self playerForKey:key];
         if (player) {
@@ -282,6 +287,7 @@ RCT_EXPORT_METHOD(release : (nonnull NSNumber *)key) {
             NSNotificationCenter *notificationCenter =
                 [NSNotificationCenter defaultCenter];
             [notificationCenter removeObserver:self];
+            [session setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
         }
     }
 }
